@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>JOCC Call Intelligence Radar | 51Talk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet" />
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at top right, #1e1b4b, #090d16 65%);
+            color: #f8fafc;
+            font-family: 'Cairo', 'Plus Jakarta Sans', system-ui, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            width: 100%;
+            max-width: 480px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(99, 102, 241, 0.35);
+            border-radius: 20px;
+            padding: 28px 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(16px);
+            text-align: center;
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 14px;
+            border-radius: 999px;
+            background: rgba(56, 189, 248, 0.14);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            color: #7dd3fc;
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+        h1 {
+            margin: 0 0 8px;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #ffffff;
+        }
+        .sub {
+            margin: 0 0 22px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .spinner {
+            width: 42px;
+            height: 42px;
+            margin: 0 auto 16px;
+            border: 4px solid rgba(56, 189, 248, 0.2);
+            border-top-color: #38bdf8;
+            border-radius: 50%;
+            animation: spin 0.85s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .status-text {
+            font-size: 0.96rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin-bottom: 14px;
+            min-height: 24px;
+        }
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 18px;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.92rem;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.15s ease, opacity 0.15s ease;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-primary {
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            color: #050b14;
+        }
+        .btn-secondary {
+            background: rgba(30, 41, 59, 0.9);
+            color: #cbd5e1;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+        }
+        .meta {
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(148, 163, 184, 0.15);
+            font-size: 0.78rem;
+            color: #64748b;
+            direction: ltr;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="badge">51Talk Jordan • Big Team 01</div>
+        <h1>🎯 JOCC Call Intelligence Radar</h1>
+        <p class="sub">
+            الرابط الدائم الموحد للنظام • سيتم تحويلك تلقائياً إلى الخادم النشط الآن<br />
+            Permanent Team Portal • Auto-connecting to the live server
+        </p>
+        <div class="spinner" id="spinner"></div>
+        <div class="status-text" id="statusText">جاري الاتصال بالخادم النشط...</div>
+        <div class="actions" id="actionsBox" style="display:none;">
+            <a id="btnDirectOpen" class="btn btn-primary" href="#">🚀 فتح الرادار مباشرة (Open Live Radar)</a>
+            <a id="btnLanOpen" class="btn btn-secondary" href="#" style="display:none;">🏠 رابط المكتب الداخلي (Office LAN Backup)</a>
+        </div>
+        <div class="meta" id="metaBox">Passcode: <strong>Big01</strong> • Waiting for live tunnel...</div>
+    </div>
+
+    <script>
+        (function () {
+            const GIST_ID = '233cef6a3869466d14bad83d5315484b';
+            const REPO_PREFIX = '/jocc-call-radar';
+            let attempt = 0;
+
+            function getForwardSuffix() {
+                let p = window.location.pathname || '/';
+                if (p.startsWith(REPO_PREFIX)) {
+                    p = p.slice(REPO_PREFIX.length) || '/';
+                }
+                if (!p.startsWith('/')) p = '/' + p;
+                return p + (window.location.search || '') + (window.location.hash || '');
+            }
+
+            function parseJsonSafe(rawText) {
+                try {
+                    return JSON.parse(String(rawText || '').replace(/^\uFEFF/, '').trim());
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            async function fetchEndpointRecords() {
+                const cb = Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+                const candidates = [];
+
+                const tasks = [
+                    fetch('https://api.github.com/gists/' + GIST_ID + '?cb=' + cb, { cache: 'no-store' })
+                        .then(r => r.ok ? r.json() : null)
+                        .then(g => {
+                            if (g && g.files && g.files['live_endpoint.json']) {
+                                const parsed = parseJsonSafe(g.files['live_endpoint.json'].content);
+                                if (parsed && parsed.url) candidates.push(parsed);
+                            }
+                        })
+                        .catch(() => {}),
+                    fetch('https://gist.githubusercontent.com/husseinelaasar/' + GIST_ID + '/raw/live_endpoint.json?cb=' + cb, { cache: 'no-store' })
+                        .then(r => r.ok ? r.text() : null)
+                        .then(t => {
+                            const parsed = parseJsonSafe(t);
+                            if (parsed && parsed.url) candidates.push(parsed);
+                        })
+                        .catch(() => {})
+                ];
+
+                await Promise.all(tasks);
+                candidates.sort((a, b) => String(b.updated_at || '').localeCompare(String(a.updated_at || '')));
+                return candidates;
+            }
+
+            async function isTunnelAlive(baseUrl) {
+                const ctrl = new AbortController();
+                const timer = setTimeout(() => ctrl.abort(), 3500);
+                try {
+                    const res = await fetch(baseUrl.replace(/\/$/, '') + '/api/ping?t=' + Date.now(), {
+                        cache: 'no-store',
+                        mode: 'cors',
+                        signal: ctrl.signal
+                    });
+                    clearTimeout(timer);
+                    if (!res.ok) return false;
+                    const data = await res.json();
+                    return Boolean(data && data.ok);
+                } catch (e) {
+                    clearTimeout(timer);
+                    return false;
+                }
+            }
+
+            async function connectLoop() {
+                attempt += 1;
+                const statusEl = document.getElementById('statusText');
+                const metaEl = document.getElementById('metaBox');
+                const actionsBox = document.getElementById('actionsBox');
+                const btnDirect = document.getElementById('btnDirectOpen');
+                const btnLan = document.getElementById('btnLanOpen');
+
+                try {
+                    const list = await fetchEndpointRecords();
+                    const suffix = getForwardSuffix();
+                    let latest = list[0] || null;
+
+                    if (latest && latest.lan_url) {
+                        btnLan.href = latest.lan_url.replace(/\/$/, '') + suffix;
+                        btnLan.style.display = 'inline-flex';
+                    }
+
+                    for (const item of list) {
+                        const cleanBase = String(item.url || '').replace(/\/$/, '');
+                        if (!cleanBase.startsWith('https://')) continue;
+                        const ok = await isTunnelAlive(cleanBase);
+                        if (ok) {
+                            const finalUrl = cleanBase + suffix;
+                            statusEl.textContent = '✅ الخادم جاهز — جاري التحويل الآن...';
+                            btnDirect.href = finalUrl;
+                            actionsBox.style.display = 'flex';
+                            window.location.replace(finalUrl);
+                            return;
+                        }
+                    }
+
+                    if (latest && latest.url) {
+                        const cleanBase = String(latest.url).replace(/\/$/, '');
+                        btnDirect.href = cleanBase + suffix;
+                        actionsBox.style.display = 'flex';
+                        metaEl.textContent = 'Last tunnel: ' + cleanBase + ' | Passcode: Big01 | Retry #' + attempt;
+                    } else {
+                        metaEl.textContent = 'Searching active tunnel endpoint... | Passcode: Big01 | Retry #' + attempt;
+                    }
+                    statusEl.textContent = '🔄 الخادم قيد التحديث أو التشغيل — محاولة #' + attempt + '...';
+                } catch (err) {
+                    statusEl.textContent = '⚠️ جاري إعادة المحاولة (# ' + attempt + ')...';
+                }
+
+                setTimeout(connectLoop, 3000);
+            }
+
+            connectLoop();
+        })();
+    </script>
+</body>
+</html>
