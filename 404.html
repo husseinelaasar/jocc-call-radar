@@ -6,6 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
+    <link rel="icon" href="data:," />
     <title>JOCC Call Intelligence Radar | 51Talk</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -145,7 +146,13 @@
                     p = p.slice(REPO_PREFIX.length) || '/';
                 }
                 if (!p.startsWith('/')) p = '/' + p;
-                return p + (window.location.search || '') + (window.location.hash || '');
+                const search = window.location.search || '';
+                const params = new URLSearchParams(search);
+                const m = params.get('month');
+                if (p === '/' && (m === '2026-10' || m === '2026-09' || m === 'ARCHIVE')) {
+                    p = '/archive';
+                }
+                return p + search + (window.location.hash || '');
             }
 
             function parseJsonSafe(rawText) {
